@@ -5,7 +5,7 @@
   "type": "module",
   "homepage": "https://<USERNAME>.github.io/<REPO-NAME>",
   "scripts": {
-    "predeploy": "npm run build && copyfiles .gitattributes dist",
+    "predeploy": "pnpm run build && copyfiles .gitattributes dist",
     "deploy": "gh-pages -d dist",
     "dev": "vite",
     "build": "vite build",
