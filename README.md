@@ -5,7 +5,7 @@ A clean, responsive developer portfolio built with React, TypeScript, and Materi
 ## How to Use
 
 1.  **Clone this repository.**
-2.  **Install dependencies:** `npm install`
+2.  **Install dependencies:** `pnpm install`
 3.  **Customize Configuration:**
     *   Open `src/utils.ts` and update `BASE_URL` to match your repository name (e.g., `/My-Portfolio`).
     *   Open `vite.config.ts` and update `base` to match `BASE_URL`.
@@ -50,6 +50,6 @@ graph TD
 
 ## Available Scripts
 
-*   `npm run dev`: Starts the Vite development server.
-*   `npm run build`: Compiles and bundles the application for production.
-*   `npm run deploy`: Deploys to GitHub Pages.
+*   `pnpm run dev`: Starts the Vite development server.
+*   `pnpm run build`: Compiles and bundles the application for production.
+*   `pnpm run deploy`: Deploys to GitHub Pages.

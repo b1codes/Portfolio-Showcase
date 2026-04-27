@@ -28,11 +28,11 @@ Common commands for development and deployment:
 
 | Command | Description |
 | :--- | :--- |
-| `npm install` | Install project dependencies. |
-| `npm run dev` | Start the Vite development server (usually at `http://localhost:5173`). |
-| `npm run build` | Compile and bundle for production in the `dist/` folder. |
-| `npm run deploy` | Build and deploy the site to GitHub Pages. |
-| `npm run preview` | Preview the production build locally. |
+| `pnpm install` | Install project dependencies. |
+| `pnpm run dev` | Start the Vite development server (usually at `http://localhost:5173`). |
+| `pnpm run build` | Compile and bundle for production in the `dist/` folder. |
+| `pnpm run deploy` | Build and deploy the site to GitHub Pages. |
+| `pnpm run preview` | Preview the production build locally. |
 
 ## Development Conventions
 - **Customization:** To personalize the portfolio, users should primarily edit `src/data.ts`, `src/utils.ts`, and update assets in the `public/` directory.
