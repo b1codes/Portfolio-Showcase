@@ -1,0 +1,50 @@
+<svg width="200" height="200" viewBox="27 22.5 146 146" xmlns="http://www.w3.org/2000/svg">
+  <!-- 
+    This SVG file creates an icon of a suitcase.
+    This version is enlarged and has the background circle removed.
+    It's built in layers:
+    1. The base white shapes for the suitcase (corners and handle).
+    2. The main teal body of the suitcase.
+    3. The white straps and buckles that go over the teal body.
+    4. The final black outlines for detail and definition.
+  -->
+
+  <!-- Suitcase -->
+  <g id="suitcase" transform="translate(0, -5)">
+    <!-- Base white layer for corners and straps background -->
+    <rect x="37" y="67" width="126" height="76" rx="12" ry="12" fill="white"/>
+    
+    <!-- White handle -->
+    <rect x="85" y="58" width="30" height="12" rx="5" ry="5" fill="white"/>
+    
+    <!-- Teal suitcase body -->
+    <rect x="40" y="70" width="120" height="70" rx="10" ry="10" fill="#4fb4a8"/>
+    
+    <!-- White straps overlaying the teal body -->
+    <rect x="65" y="70" width="15" height="70" fill="white"/>
+    <rect x="120" y="70" width="15" height="70" fill="white"/>
+    
+    <!-- Buckles -->
+    <rect x="68" y="94" width="10" height="12" rx="2" ry="2" fill="#fafafa"/>
+    <rect x="122" y="94" width="10" height="12" rx="2" ry="2" fill="#fafafa"/>
+
+    <!-- Outlines (drawn last to be on top) -->
+    <g id="outlines" fill="none" stroke="#333" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Main body and strap outlines -->
+      <path d="
+        M 50 70 A 10 10 0 0 0 40 80 V 130 A 10 10 0 0 0 50 140 H 150 A 10 10 0 0 0 160 130 V 80 A 10 10 0 0 0 150 70 H 50 Z
+        M 65 70 V 140
+        M 80 70 V 140
+        M 120 70 V 140
+        M 135 70 V 140
+      " stroke-width="3"/>
+      
+      <!-- Handle outline -->
+      <rect x="85" y="58" width="30" height="12" rx="5" ry="5" stroke-width="3"/>
+
+      <!-- Buckle outlines -->
+      <rect x="68" y="94" width="10" height="12" rx="2" ry="2" stroke-width="2"/>
+      <rect x="122" y="94" width="10" height="12" rx="2" ry="2" stroke-width="2"/>
+    </g>
+  </g>
+</svg>
