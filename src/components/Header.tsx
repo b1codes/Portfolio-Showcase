@@ -121,7 +121,7 @@ export function Header() {
 
   return (
       <>
-        <AppBar position="fixed" sx={{ bgcolor: 'rgba(30, 30, 30, 0.85)', backdropFilter: 'blur(10px)' }}>
+        <AppBar position="fixed" elevation={0} sx={{ bgcolor: 'rgba(11, 9, 16, 0.75)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255, 255, 255, 0.05)' }}>
           <Toolbar>
             <IconButton
                 size="large"

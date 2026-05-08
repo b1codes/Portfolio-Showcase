@@ -33,9 +33,37 @@ import {
     ExpandMore as ExpandMoreIcon,
     CheckCircle as CheckCircleIcon,
     RadioButtonUnchecked as RadioButtonUncheckedIcon,
+    Language as WebIcon,
+    Apple as AppleIcon,
+    Android as AndroidIcon,
+    Cloud as CloudIcon,
+    Terminal as TerminalIcon,
+    Window as WindowsIcon,
+    Computer as ComputerIcon,
+    PhoneIphone as IOSIcon,
+    TabletMac as IPadOSIcon,
+    DesktopMac as MacOSIcon,
+    Watch as WatchIcon,
 } from '@mui/icons-material';
 
 import { getPhaseColors, getCurrentPhase } from '../utils';
+import { ClickUpProgress } from './ClickUpProgress';
+
+const getBuildTargetIcon = (target: string) => {
+    switch (target) {
+        case 'Web': return <WebIcon fontSize="small" />;
+        case 'iOS': return <IOSIcon fontSize="small" />;
+        case 'iPadOS': return <IPadOSIcon fontSize="small" />;
+        case 'macOS': return <MacOSIcon fontSize="small" />;
+        case 'Apple Watch': return <WatchIcon fontSize="small" />;
+        case 'Android': return <AndroidIcon fontSize="small" />;
+        case 'Cloud': return <CloudIcon fontSize="small" />;
+        case 'Terminal': return <TerminalIcon fontSize="small" />;
+        case 'Windows': return <WindowsIcon fontSize="small" />;
+        case 'Linux': return <ComputerIcon fontSize="small" />;
+        default: return undefined;
+    }
+}
 
 interface ProjectDetailProps {
     project: Project;
@@ -57,7 +85,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
     };
 
     return (
-        <Paper elevation={3} sx={{ p: { xs: 2, sm: 3, md: 4 } }} aria-live="polite">
+        <Paper elevation={0} sx={{ p: { xs: 3, sm: 4, md: 5 } }} aria-live="polite">
             <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems="center" spacing={2} sx={{ mb: { xs: 2, sm: 3 } }}>
                 <Button
                     variant="contained"
@@ -81,9 +109,47 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
                 </Button>
             </Stack>
 
-            <Typography variant="h3" component="h2" gutterBottom sx={{ typography: { xs: 'h4', sm: 'h3' } }}>
-                {project.title}
-            </Typography>
+            {project.headerImage && (
+                <Box
+                    component="img"
+                    src={project.headerImage}
+                    alt={`${project.title} header`}
+                    sx={{
+                        width: '100%',
+                        height: { xs: 150, sm: 200, md: 250 },
+                        objectFit: 'cover',
+                        borderRadius: 2,
+                        boxShadow: 2,
+                        mb: 3,
+                    }}
+                />
+            )}
+
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, gap: 2 }}>
+                {project.appIcon && (
+                    <Box
+                        component="img"
+                        src={project.appIcon}
+                        alt={`${project.title} App Icon`}
+                        sx={{
+                            width: { xs: 48, sm: 64 },
+                            height: { xs: 48, sm: 64 },
+                            borderRadius: 2,
+                            boxShadow: 2,
+                            flexShrink: 0,
+                            cursor: 'pointer',
+                            transition: 'transform 0.3s ease-in-out',
+                            '&:hover': {
+                                transform: 'scale(1.05)',
+                            },
+                        }}
+                        onClick={() => handleOpenImage(project.appIcon!)}
+                    />
+                )}
+                <Typography variant="h3" component="h2" sx={{ typography: { xs: 'h4', sm: 'h3' }, mb: 0 }}>
+                    {project.title}
+                </Typography>
+            </Box>
 
             <Stack direction="row" spacing={1} sx={{ mb: 2 }} useFlexGap flexWrap="wrap">
                 <Chip
@@ -97,17 +163,33 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
                 {project.technologies.map(tag => <Chip key={tag} label={tag} variant="outlined" />)}
             </Stack>
 
+            {project.buildTargets && project.buildTargets.length > 0 && (
+                <Stack direction="row" spacing={1} sx={{ mb: 2 }} useFlexGap flexWrap="wrap" alignItems="center">
+                    <Typography variant="body2" sx={{ mr: 1, fontWeight: 'bold', color: 'text.secondary' }}>Supported Platforms:</Typography>
+                    {project.buildTargets.map(target => (
+                        <Chip 
+                            key={target} 
+                            icon={getBuildTargetIcon(target)} 
+                            label={target} 
+                            variant="filled"
+                            size="small"
+                            color="primary"
+                        />
+                    ))}
+                </Stack>
+            )}
+
             <Typography variant='h5' paragraph sx={{ color: 'text.secondary', mb: 2, mt: 2, typography: { xs: 'h6', sm: 'h5' } }}>
                 Inspiration
             </Typography>
-            <Typography variant="body1" paragraph sx={{ lineHeight: { xs: 1.6, sm: 1.7 }, color: 'text.secondary' }}>
+            <Typography variant="body1" paragraph sx={{ lineHeight: { xs: 1.6, sm: 1.7 }, color: 'text.secondary', maxWidth: '75ch' }}>
                 {project.inspiration}
             </Typography>
 
             <Typography variant='h5' paragraph sx={{ color: 'text.secondary', mb: 2, typography: { xs: 'h6', sm: 'h5' } }}>
                 Description
             </Typography>
-            <Typography variant="body1" paragraph sx={{ lineHeight: { xs: 1.6, sm: 1.7 }, color: 'text.secondary' }}>
+            <Typography variant="body1" paragraph sx={{ lineHeight: { xs: 1.6, sm: 1.7 }, color: 'text.secondary', maxWidth: '75ch' }}>
                 {project.longDescription}
             </Typography>
 
@@ -128,6 +210,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
                                                     {stack.category}
                                                 </Typography>
                                             }
+                                            primaryTypographyProps={{ component: 'div' }}
                                             secondary={
                                                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                                                     {stack.technologies.map((tech) => (
@@ -135,6 +218,7 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
                                                     ))}
                                                 </Box>
                                             }
+                                            secondaryTypographyProps={{ component: 'div' }}
                                             sx={{ margin: 0, width: '100%' }}
                                         />
                                     </ListItem>
@@ -186,6 +270,8 @@ export function ProjectDetail({ project }: ProjectDetailProps) {
                     </Accordion>
                 ))}
             </Box>
+
+            <ClickUpProgress projectId={project.id} />
 
             <Box sx={{ my: 4 }}>
                 {project.video && (

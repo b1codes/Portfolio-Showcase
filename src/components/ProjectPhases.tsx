@@ -2,13 +2,17 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
-import { Box, Tooltip, Typography, useMediaQuery, useTheme, Paper, Accordion, AccordionSummary, AccordionDetails, IconButton } from '@mui/material';
+import { useState, useMemo } from 'react';
+import { Box, Tooltip, Typography, useMediaQuery, useTheme, Paper, Accordion, AccordionSummary, AccordionDetails, IconButton, Button, Dialog, DialogTitle, DialogContent, Grid } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import HubIcon from '@mui/icons-material/Hub';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import InfoIcon from '@mui/icons-material/Info';
 import { Link } from 'react-router-dom';
 import { Project } from '../types';
 import { getPhaseColors, PHASE_DESCRIPTIONS, PHASES_ORDER, getCurrentPhase } from '../utils';
 import Plot from 'react-plotly.js';
+// @ts-ignore
 import { Data } from 'plotly.js';
 
 interface ProjectPhasesProps {
@@ -18,25 +22,30 @@ interface ProjectPhasesProps {
 export function ProjectPhases({ projects }: ProjectPhasesProps) {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const [isSunburstOpen, setIsSunburstOpen] = useState(false);
     const totalProjects = projects.length;
     const PHASE_COLORS = getPhaseColors(theme);
 
     // --- Data Preparation: Distribution ---
-    const phaseCounts = PHASES_ORDER.reduce((acc, phase) => {
-        acc[phase] = 0;
-        return acc;
-    }, {} as Record<string, number>);
+    const { phaseCounts, distLabels, distValues, distColors } = useMemo(() => {
+        const counts = PHASES_ORDER.reduce((acc, phase) => {
+            acc[phase] = 0;
+            return acc;
+        }, {} as Record<string, number>);
 
-    projects.forEach(project => {
-        const currentPhaseStage = getCurrentPhase(project).currentPhaseStage;
-        if (phaseCounts[currentPhaseStage] !== undefined) {
-            phaseCounts[currentPhaseStage]++;
-        }
-    });
+        projects.forEach(project => {
+            const currentPhaseStage = getCurrentPhase(project).currentPhaseStage;
+            if (counts[currentPhaseStage] !== undefined) {
+                counts[currentPhaseStage]++;
+            }
+        });
 
-    const distLabels = PHASES_ORDER.filter(phase => phaseCounts[phase] > 0);
-    const distValues = distLabels.map(phase => phaseCounts[phase]);
-    const distColors = distLabels.map(phase => PHASE_COLORS[phase]);
+        const labels = PHASES_ORDER.filter(phase => counts[phase] > 0);
+        const values = labels.map(phase => counts[phase]);
+        const colors = labels.map(phase => PHASE_COLORS[phase]);
+
+        return { phaseCounts: counts, distLabels: labels, distValues: values, distColors: colors };
+    }, [projects, PHASE_COLORS]);
 
     // --- Render Functions ---
 
@@ -130,40 +139,42 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
      * Renders the bar chart comparing total completed phases vs current active projects.
      */
     const renderTotalsChart = () => {
-        // Calculate totals across ALL projects
-        const totalCompleted = projects.reduce((acc, project) => {
-            return acc + project.phases.filter(p => p.isComplete).length;
-        }, 0);
+        // Calculate counts for every phase across all projects
+        // Completed phases are treated as "Maintenance & Support"
+        const { allPhaseLabels, allPhaseValues, allPhaseColors } = useMemo(() => {
+            const counts = PHASES_ORDER.reduce((acc, phase) => {
+                acc[phase] = 0;
+                return acc;
+            }, {} as Record<string, number>);
 
-        // Calculate active projects per phase
-        const activePhaseCounts = PHASES_ORDER.reduce((acc, phase) => {
-            acc[phase] = 0;
-            return acc;
-        }, {} as Record<string, number>);
+            projects.forEach(project => {
+                project.phases.forEach(phase => {
+                    if (phase.isComplete) {
+                        counts['Maintenance & Support']++;
+                    } else {
+                        const stage = phase.currentPhaseStage;
+                        if (counts[stage] !== undefined) {
+                            counts[stage]++;
+                        }
+                    }
+                });
+            });
 
-        projects.forEach(project => {
-            const isActive = project.phases.some(phase => !phase.isComplete);
-            if (isActive) {
-                const currentPhaseStage = getCurrentPhase(project).currentPhaseStage;
-                if (activePhaseCounts[currentPhaseStage] !== undefined) {
-                    activePhaseCounts[currentPhaseStage]++;
-                }
-            }
-        });
-
-        const activeLabels = PHASES_ORDER.filter(phase => activePhaseCounts[phase] > 0);
-        const activeValues = activeLabels.map(phase => activePhaseCounts[phase]);
-        const activeColors = activeLabels.map(phase => PHASE_COLORS[phase]);
+            const labels = PHASES_ORDER.filter(phase => counts[phase] > 0);
+            const values = labels.map(phase => counts[phase]);
+            const colors = labels.map(phase => PHASE_COLORS[phase]);
+            return { allPhaseLabels: labels, allPhaseValues: values, allPhaseColors: colors };
+        }, [projects, PHASE_COLORS]);
 
         const data: Data[] = [
             {
-                x: ['Completed Phases', ...activeLabels],
-                y: [totalCompleted, ...activeValues],
+                x: allPhaseLabels.map((label: string) => label.replace(' & ', ' &<br>')),
+                y: allPhaseValues,
                 type: 'bar',
                 marker: {
-                    color: [theme.palette.primary.main, ...activeColors]
+                    color: allPhaseColors
                 },
-                text: [String(totalCompleted), ...activeValues.map(String)],
+                text: allPhaseValues.map(String),
                 textposition: 'auto',
             }
         ];
@@ -189,13 +200,13 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                         style={{ width: '100%', height: '100%', position: 'absolute', top: 0, left: 0 }}
                         layout={{
                             autosize: true,
-                            margin: isMobile 
-                                ? { l: 30, r: 10, b: 100, t: 10 } 
+                            margin: isMobile
+                                ? { l: 30, r: 10, b: 100, t: 10 }
                                 : { l: 40, r: 20, b: 80, t: 10 },
                             paper_bgcolor: 'rgba(0,0,0,0)',
                             plot_bgcolor: 'rgba(0,0,0,0)',
                             font: { color: theme.palette.text.primary, size: isMobile ? 10 : 12 },
-                            xaxis: { 
+                            xaxis: {
                                 fixedrange: true,
                                 tickangle: -45, // Rotate labels
                                 automargin: true
@@ -211,9 +222,161 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
     };
 
     /**
+     * Renders a condensed grid showing all projects and their phase progress.
+     */
+    const renderPhaseGrid = () => {
+        const sortedProjects = [...projects].sort((a, b) => a.id - b.id);
+        const maxPhases = Math.max(...projects.map(p => p.phases.length), 0);
+
+        // Split projects into two columns
+        const midPoint = Math.ceil(sortedProjects.length / 2);
+        const leftColumnProjects = sortedProjects.slice(0, midPoint);
+        const rightColumnProjects = sortedProjects.slice(midPoint);
+
+        const renderColumnHeader = () => (
+            <Grid container spacing={1} sx={{ mb: 1, borderBottom: 1, borderColor: 'divider', pb: 1, pr: 2, flexShrink: 0 }}>
+                <Grid item xs={4}>
+                    <Typography variant="caption" sx={{ fontWeight: 'bold' }}>Project</Typography>
+                </Grid>
+                <Grid item xs={8}>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        {Array.from({ length: maxPhases }).map((_, i) => (
+                            <Typography key={i} variant="caption" sx={{ width: 24, textAlign: 'center', fontWeight: 'bold', fontSize: '0.65rem' }}>
+                                P{i + 1}
+                            </Typography>
+                        ))}
+                    </Box>
+                </Grid>
+            </Grid>
+        );
+
+        const renderProjectRow = (project: Project) => (
+            <Grid container key={project.id} spacing={1} sx={{ 
+                flexGrow: 1,
+                minHeight: { xs: 40, lg: 45 },
+                py: { xs: 1, lg: 0 }, 
+                borderBottom: '1px solid', 
+                borderColor: 'action.hover', 
+                '&:last-child': { borderBottom: 0 }, 
+                alignItems: 'center', 
+                pr: 1 
+            }}>
+                <Grid item xs={4}>
+                    <Typography variant="body2" noWrap sx={{ fontWeight: 500, fontSize: '0.75rem' }}>
+                        {project.title}
+                    </Typography>
+                </Grid>
+                <Grid item xs={8}>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                        {project.phases.map((phase) => (
+                            <Tooltip
+                                key={phase.number}
+                                title={
+                                    <Box sx={{ p: 0.5 }}>
+                                        <Typography variant="subtitle2" sx={{ fontWeight: 'bold' }}>Phase {phase.number}: {phase.title}</Typography>
+                                        <Typography variant="caption" display="block">{phase.currentPhaseStage}</Typography>
+                                        <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic' }}>{phase.description}</Typography>
+                                    </Box>
+                                }
+                                arrow
+                            >
+                                <Box
+                                    sx={{
+                                        width: 24,
+                                        height: 24,
+                                        borderRadius: 1,
+                                        backgroundColor: PHASE_COLORS[phase.currentPhaseStage],
+                                        transition: 'transform 0.2s',
+                                        '&:hover': {
+                                            transform: 'scale(1.15)',
+                                            cursor: 'help',
+                                            zIndex: 1,
+                                            boxShadow: 2
+                                        },
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        color: theme.palette.getContrastText(PHASE_COLORS[phase.currentPhaseStage]),
+                                        fontSize: '0.65rem',
+                                        fontWeight: 'bold'
+                                    }}
+                                >
+                                    {phase.isComplete ? '✓' : phase.number}
+                                </Box>
+                            </Tooltip>
+                        ))}
+                    </Box>
+                </Grid>
+            </Grid>
+        );
+
+        return (
+            <Paper elevation={2} sx={{
+                p: 2,
+                display: 'flex',
+                flexDirection: 'column',
+                width: '100%',
+                height: '100%'
+            }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">
+                        Portfolio Phase Tracker
+                    </Typography>
+                    <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<HubIcon />}
+                        onClick={() => setIsSunburstOpen(true)}
+                    >
+                        View Full Hierarchy
+                    </Button>
+                </Box>
+
+                <Box sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', lg: 'row' },
+                    gap: 4,
+                    flex: 1,
+                    minHeight: 0
+                }}>
+                    {/* Left Column */}
+                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        {renderColumnHeader()}
+                        <Box sx={{ 
+                            flex: 1, 
+                            overflowY: 'auto', 
+                            pr: 0.5, 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            minHeight: 0
+                        }}>
+                            {leftColumnProjects.map(project => renderProjectRow(project))}
+                        </Box>
+                    </Box>
+
+                    {/* Right Column */}
+                    <Box sx={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                        {renderColumnHeader()}
+                        <Box sx={{ 
+                            flex: 1, 
+                            overflowY: 'auto', 
+                            pr: 0.5, 
+                            display: 'flex', 
+                            flexDirection: 'column',
+                            minHeight: 0
+                        }}>
+                            {rightColumnProjects.map(project => renderProjectRow(project))}
+                        </Box>
+                    </Box>
+                </Box>
+            </Paper>
+        );
+    };
+
+    /**
      * Renders the Sunburst chart showing project hierarchy.
      */
-    const renderSunburstChart = () => {
+    const renderSunburstChart = (isModal = false) => {
         // Arrays to hold chart data
         const ids: string[] = [];
         const labels: string[] = [];
@@ -270,19 +433,20 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
         };
 
         return (
-            <Paper elevation={2} sx={{
-                p: 2,
+            <Box sx={{
                 display: 'flex',
                 flexDirection: 'column',
-                flex: { xs: '0 0 auto', md: 1 },
-                height: { xs: 450, md: 'auto' },
+                flex: isModal ? '1 1 auto' : { xs: '0 0 auto', md: 1 },
+                height: isModal ? '80vh' : { xs: 450, md: 'auto' },
                 width: '100%',
                 overflow: 'hidden',
-                minHeight: 400
+                minHeight: isModal ? 600 : 400
             }}>
-                <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', flexShrink: 0 }}>
-                    Project Phase Hierarchy
-                </Typography>
+                {!isModal && (
+                    <Typography variant="h6" gutterBottom sx={{ textAlign: 'center', flexShrink: 0 }}>
+                        Project Phase Hierarchy
+                    </Typography>
+                )}
                 <Box sx={{ flex: 1, position: 'relative', minHeight: 0, width: '100%', minWidth: 0 }}>
                     <Plot
                         data={[sunburstChart]}
@@ -297,9 +461,51 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                         config={{ displayModeBar: false }}
                     />
                 </Box>
-            </Paper>
+            </Box>
         );
     };
+
+    const renderSunburstModal = () => (
+        <Dialog
+            open={isSunburstOpen}
+            onClose={() => setIsSunburstOpen(false)}
+            maxWidth="lg"
+            fullWidth
+            PaperProps={{
+                sx: {
+                    borderRadius: 3,
+                    bgcolor: 'background.paper',
+                    backgroundImage: 'none',
+                    minHeight: '90vh'
+                }
+            }}
+        >
+            <DialogTitle sx={{ m: 0, p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography variant="h5" component="div" sx={{ fontWeight: 'bold' }}>
+                    Detailed Project Phase Hierarchy
+                </Typography>
+                <IconButton
+                    aria-label="close"
+                    onClick={() => setIsSunburstOpen(false)}
+                    sx={{
+                        color: (theme) => theme.palette.grey[500],
+                    }}
+                >
+                    <CloseIcon />
+                </IconButton>
+            </DialogTitle>
+            <DialogContent dividers sx={{ p: 0, pb: '5px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <Box sx={{ p: 2, flexShrink: 0 }}>
+                    <Typography variant="body2" color="text.secondary">
+                        This view shows the full relationship between all projects and their specific SDLC phases. Outer rings represent individual phases, while the inner ring represents projects.
+                    </Typography>
+                </Box>
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                    {renderSunburstChart(true)}
+                </Box>
+            </DialogContent>
+        </Dialog>
+    );
 
     const content = (
         <Box sx={{
@@ -329,12 +535,12 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                 }}>
                     {renderDistributionChart()}
                 </Box>
-                <Box sx={{ 
+                <Box sx={{
                     flex: { xs: '0 0 auto', md: 1 },
-                    minHeight: 0, 
-                    minWidth: 0, 
-                    display: 'flex', 
-                    flexDirection: 'column' 
+                    minHeight: 0,
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column'
                 }}>
                     {renderTotalsChart()}
                 </Box>
@@ -347,17 +553,10 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                 flex: { xs: '0 0 auto', md: 2 },
                 width: '100%',
                 minHeight: 0,
-                minWidth: 0
+                minWidth: 0,
+                alignSelf: 'stretch'
             }}>
-                <Box sx={{ 
-                    flex: { xs: '0 0 auto', md: 1 },
-                    minHeight: 0, 
-                    minWidth: 0, 
-                    display: 'flex', 
-                    flexDirection: 'column' 
-                }}>
-                    {renderSunburstChart()}
-                </Box>
+                {renderPhaseGrid()}
             </Box>
         </Box>
     );
@@ -369,9 +568,9 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                         <Typography variant="h6">Project Phases Overview</Typography>
                         <Tooltip title="Learn more about SDLC implementation">
-                            <IconButton 
-                                component={Link} 
-                                to="/sdlc" 
+                            <IconButton
+                                component={Link}
+                                to="/sdlc"
                                 size="small"
                                 onClick={(e) => e.stopPropagation()}
                                 sx={{ ml: 1 }}
@@ -383,6 +582,7 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                 </AccordionSummary>
                 <AccordionDetails sx={{ p: 1 }}>
                     {content}
+                    {renderSunburstModal()}
                 </AccordionDetails>
             </Accordion>
         );
@@ -412,6 +612,7 @@ export function ProjectPhases({ projects }: ProjectPhasesProps) {
                 </Tooltip>
             </Box>
             {content}
+            {renderSunburstModal()}
         </Box>
     );
 }
