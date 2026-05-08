@@ -1,0 +1,34 @@
+{
+  "lastUpdated": "2026-05-08T12:00:00.000Z",
+  "projects": {
+    "1": {
+      "progress": 60,
+      "tasks": [
+        {
+          "name": "Initial Design",
+          "status": "complete",
+          "statusColor": "#00FF00",
+          "isClosed": true
+        },
+        {
+          "name": "Frontend Implementation",
+          "status": "complete",
+          "statusColor": "#00FF00",
+          "isClosed": true
+        },
+        {
+          "name": "Backend API",
+          "status": "in progress",
+          "statusColor": "#3498db",
+          "isClosed": false
+        },
+        {
+          "name": "Testing & QA",
+          "status": "to do",
+          "statusColor": "#999999",
+          "isClosed": false
+        }
+      ]
+    }
+  }
+}

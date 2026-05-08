@@ -6,3 +6,4 @@ export { ProjectCard } from './ProjectCard';
 export { ProjectGrid } from './ProjectGrid';
 export { ProjectPhases } from './ProjectPhases';
 export { SDLC } from './SDLC';
+export { ClickUpProgress } from './ClickUpProgress';
