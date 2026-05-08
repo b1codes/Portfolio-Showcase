@@ -2,12 +2,14 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
 */
-import {Project} from './types';
+import {Project, ExtraProfiles} from './types';
 
 import {
   FolderSpecial as FolderSpecialIcon,
   Devices as DevicesIcon,
   Code as CodeIcon,
+  GitHub as GitHubIcon,
+  LinkedIn as LinkedInIcon,
 } from '@mui/icons-material';
 
 export const PROJECTS: Project[] = [
@@ -103,5 +105,8 @@ export const EXTRA_PROFILES: any[] = [
 ];
 
 export const IDES: string[] = ['VS Code', 'IntelliJ', 'Xcode'];
+
+export const DEV_TOOLS: string[] = ['Git', 'Docker', 'Jenkins', 'Terraform'];
+tring[] = ['VS Code', 'IntelliJ', 'Xcode'];
 
 export const DEV_TOOLS: string[] = ['Git', 'Docker', 'Jenkins', 'Terraform'];
