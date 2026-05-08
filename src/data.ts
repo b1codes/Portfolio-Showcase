@@ -99,14 +99,11 @@ This is a template description. You can edit this text in src/data.ts to tell yo
 export const GITHUB_PROFILE_URL = 'https://github.com/your-username';
 export const LINKEDIN_PROFILE_URL = 'https://linkedin.com/in/your-profile';
 
-export const EXTRA_PROFILES: any[] = [
-  { name: 'GitHub', url: 'https://github.com/your-username', icon: FolderSpecialIcon },
-  { name: 'LinkedIn', url: 'https://linkedin.com/in/your-profile', icon: FolderSpecialIcon },
+export const EXTRA_PROFILES: ExtraProfiles[] = [
+  { name: 'GitHub', url: 'https://github.com/your-username', icon: GitHubIcon },
+  { name: 'LinkedIn', url: 'https://linkedin.com/in/your-profile', icon: LinkedInIcon },
 ];
 
 export const IDES: string[] = ['VS Code', 'IntelliJ', 'Xcode'];
-
-export const DEV_TOOLS: string[] = ['Git', 'Docker', 'Jenkins', 'Terraform'];
-tring[] = ['VS Code', 'IntelliJ', 'Xcode'];
 
 export const DEV_TOOLS: string[] = ['Git', 'Docker', 'Jenkins', 'Terraform'];
